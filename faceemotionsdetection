@@ -1,0 +1,42 @@
+import cv2
+from deepface import DeepFace
+
+# Load the pre-trained models
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Create an instance of the emotion recognition model
+emotion_model = DeepFace.build_model("Emotion")
+
+# Define a function to detect and recognize emotions in faces
+def detect_emotions(image_path):
+    # Read the input image
+    img = cv2.imread(image_path)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Detect faces in the image
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    # For each detected face, recognize emotions
+    for (x, y, w, h) in faces:
+        face = gray[y:y+h, x:x+w]
+
+        # Resize the face for emotion recognition (48x48 pixels)
+        face = cv2.resize(face, (48, 48))
+        emotions = emotion_model.predict(face)
+
+        # Get the emotion with the highest confidence
+        emotion = emotions[0]
+
+        # Draw a rectangle around the detected face
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Display the emotion label
+        cv2.putText(img, emotion, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+    # Display the image with emotions
+    cv2.imshow('Emotion Detection', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+# Replace 'your_image.jpg' with the path to your image
+detect_emotions('your_image.jpg')
